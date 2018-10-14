@@ -1,9 +1,15 @@
-using GtkMarkdownTextView
-@static if VERSION < v"0.7.0-DEV.2005"
-    using Base.Test
-else
-    using Test
-end
+using GtkMarkdownTextView, Test
+using Gtk
 
-# write your own tests here
-@test 1 == 2
+@testset "MarkdownTextView" begin
+    
+    w = GtkWindow("")
+
+    md = "# test\n ## test\n*test* test **test**\n - test\n\ttest"
+    v = MarkdownTextView(md)
+    push!(w,v)
+    showall(w)
+    sleep(10)
+    destroy(w)
+
+end
