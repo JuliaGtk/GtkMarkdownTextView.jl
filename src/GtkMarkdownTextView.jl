@@ -1,7 +1,6 @@
 module GtkMarkdownTextView
 
-    using Gtk
-    using GtkExtensions
+    using Gtk, GtkExtensions
     import Gtk.GtkTextIter
 
     using Markdown
@@ -55,12 +54,12 @@ module GtkMarkdownTextView
             Gtk.gobject_move_ref(n, view)
         end
         
-        MarkdownTextView(m::String) = MarkdownTextView(Base.Markdown.parse(m),"")
-        MarkdownTextView(m::String,prelude::String, mc::MarkdownColors) = MarkdownTextView(Base.Markdown.parse(m),prelude,mc)
-        MarkdownTextView(m::String, mc::MarkdownColors) = MarkdownTextView(Base.Markdown.parse(m),"",mc)
+        MarkdownTextView(m::String) = MarkdownTextView(Markdown.parse(m),"")
+        MarkdownTextView(m::String,prelude::String, mc::MarkdownColors) = MarkdownTextView(Markdown.parse(m),prelude,mc)
+        MarkdownTextView(m::String, mc::MarkdownColors) = MarkdownTextView(Markdown.parse(m),"",mc)
 
     end
-
+    
     function tag(buffer,what,i,j)
         Gtk.apply_tag(buffer,what, 
             GtkTextIter(buffer,i) , GtkTextIter(buffer,j) 
@@ -87,7 +86,6 @@ module GtkMarkdownTextView
     function insert_MD!(buffer,m::Markdown.LaTeX,i)
         i = insert_MD!(buffer,m.formula,i)
     end
-
 
     function insert_MD!(buffer,m::Markdown.Paragraph,i)
     #    insert!(buffer,"\n\n")

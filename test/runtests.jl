@@ -9,7 +9,7 @@ using Gtk
     v = MarkdownTextView(md)
     push!(w,v)
     showall(w)
-    sleep(10)
+    sleep(1)
     destroy(w)
 
 end
