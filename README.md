@@ -4,7 +4,7 @@
 
 [![Coverage Status](https://coveralls.io/repos/jonathanBieler/GtkMarkdownTextView.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jonathanBieler/GtkMarkdownTextView.jl?branch=master)
 
-A Widget to display Markdown formatted text:
+A widget to display simple markdown formatted text:
 
 ![screenshot](assets/GtkMarkdownTextView.png)
 
