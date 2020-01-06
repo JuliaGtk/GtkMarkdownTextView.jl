@@ -5,7 +5,18 @@ using Gtk
     
     w = GtkWindow("")
 
-    md = "# test\n ## test\n*test* test **test**\n - test\n\ttest"
+    md = """
+IOBuffer([data::AbstractVector{UInt8}]; keywords...) -> IOBuffer
+Create an in-memory I/O stream, which may optionally operate on a pre-existing array.
+It may take optional keyword arguments:
+- `read`, `write`, `append`: restricts operations to the buffer; see `open` for details.
+- `truncate`: truncates the buffer size to zero length.
+- `maxsize`: specifies a size beyond which the buffer may not be grown.
+- `sizehint`: suggests a capacity of the buffer (`data` must implement `sizehint!(data, size)`).
+When `data` is not given, the buffer will be both readable and writable by default.
+"""
+
+
     v = MarkdownTextView(md)
     push!(w,v)
     showall(w)

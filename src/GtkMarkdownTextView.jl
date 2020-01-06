@@ -1,6 +1,6 @@
 module GtkMarkdownTextView
 
-    using Gtk, GtkExtensions
+    using Gtk
     import Gtk.GtkTextIter
 
     using Markdown
@@ -8,13 +8,14 @@ module GtkMarkdownTextView
     export MarkdownTextView, MarkdownColors
     
     struct MarkdownColors
+        font_size::Int
         color::String
         background::String
         highlight_color::String
         highlight_background::String
     end
     
-    MarkdownColors() =  MarkdownColors("#000","#fff","#111","#eee")
+    MarkdownColors() =  MarkdownColors(13, "#000", "#fff", "#111", "#eee")
     
     mutable struct MarkdownTextView <: GtkTextView
 
@@ -25,133 +26,151 @@ module GtkMarkdownTextView
         function MarkdownTextView(m::Markdown.MD, prelude::String, mc::MarkdownColors = MarkdownColors())
             
             buffer = GtkTextBuffer()
-            set_gtk_property!(buffer,:text,prelude)  
+            buffer.text[String] = prelude
             view = GtkTextView(buffer)
             
-            GtkExtensions.style_css(view,"window, view, textview, buffer, text {
-                background-color: $(mc.background);
-                color: $(mc.color);
-                font-family: Monaco, Consolas, Courier, monospace;
-                margin:0px;
-              }"
+            style_css(view, 
+                "window, view, textview, buffer, text {
+                    background-color: $(mc.background);
+                    color: $(mc.color);
+                    font-family: Monaco, Consolas, Courier, monospace;
+                    margin:0px;
+                }"
             )
 
-            #set_gtk_property!(view,:margin_left,1)
-            set_gtk_property!(view,:monospace,true)
-            set_gtk_property!(view,:wrap_mode,true)
+            #set_gtk_property!(view, :margin_left, 1)
+            view.monospace[Bool] = true
+            view.wrap_mode[Bool] = true
 
-            Gtk.create_tag(buffer, "normal", font="13")
-            Gtk.create_tag(buffer, "h1", font="bold 15")
-            Gtk.create_tag(buffer, "h2", font="bold 14")
-            Gtk.create_tag(buffer, "bold", font="bold")
-            Gtk.create_tag(buffer, "italic", font="italic")
-            Gtk.create_tag(buffer, "code", font="bold", foreground=mc.highlight_color, background=mc.highlight_background)
+            fs = mc.font_size
 
-            insert_MD!(buffer,m)
-#            tag(buffer,"normal",1,length(buffer))
+            Gtk.create_tag(buffer, "normal",    font = "$fs")
+            Gtk.create_tag(buffer, "h1",        font = "bold $(fs+3)")
+            Gtk.create_tag(buffer, "h2",        font = "bold $(fs+2)")
+            Gtk.create_tag(buffer, "h3",        font = "bold $(fs+1)")
+            Gtk.create_tag(buffer, "h4",        font = "bold $(fs)")
+            Gtk.create_tag(buffer, "h5",        font = "$(fs)")
+            Gtk.create_tag(buffer, "h6",        font = "$(fs-1)")
+            Gtk.create_tag(buffer, "bold",      font = "bold $(fs)")
+            Gtk.create_tag(buffer, "italic",    font = "italic $fs")
+            Gtk.create_tag(buffer, "code",      font = "bold $fs", 
+                foreground=mc.highlight_color, background=mc.highlight_background)
+
+            insert_MD!(buffer, m)
+#            tag(buffer, "normal", 1, length(buffer))
             
-            n = new(view.handle,view,buffer)
+            n = new(view.handle, view, buffer)
             Gtk.gobject_move_ref(n, view)
         end
         
-        MarkdownTextView(m::String) = MarkdownTextView(Markdown.parse(m),"")
-        MarkdownTextView(m::String,prelude::String, mc::MarkdownColors) = MarkdownTextView(Markdown.parse(m),prelude,mc)
-        MarkdownTextView(m::String, mc::MarkdownColors) = MarkdownTextView(Markdown.parse(m),"",mc)
+        MarkdownTextView(m::String) = MarkdownTextView(Markdown.parse(m), "")
+        MarkdownTextView(m::String, prelude::String, mc::MarkdownColors = MarkdownColors()) = MarkdownTextView(Markdown.parse(m), prelude, mc)
+        MarkdownTextView(m::String, mc::MarkdownColors) = MarkdownTextView(Markdown.parse(m), "", mc)
 
     end
     
-    function tag(buffer,what,i,j)
-        Gtk.apply_tag(buffer,what, 
-            GtkTextIter(buffer,i) , GtkTextIter(buffer,j) 
+    function tag(buffer, what, i, j)
+        Gtk.apply_tag(buffer, what, 
+            GtkTextIter(buffer, i), GtkTextIter(buffer, j) 
         )
     end
 
-    function insert_MD!(buffer,m::Markdown.Header,i)
+    function style_css(w::Gtk.GtkWidget, css::String)
+        sc = Gtk.G_.style_context(w)
+        push!(sc, GtkCssProvider(data=css), 600)
+    end
+
+    function insert_MD!(buffer, m::Markdown.Header{N}, i) where N
         ip = i
        
-        insert!(buffer,"    ")
+        insert!(buffer, "    ")
         i += 4
         for el in m.text
-            i = insert_MD!(buffer,el,i)
+            i = insert_MD!(buffer, el, i)
         end
-        tag(buffer, "h1", ip, i)
+        tag(buffer, "h$(min(N,4))", ip, i)
         i
     end
 
-    function insert_MD!(buffer,m::String,i)
-        insert!(buffer,m)
+    function insert_MD!(buffer, m::Markdown.BlockQuote, i) 
+        insert!(buffer, "│  ")
+        i += 3
+        for el in m.content
+            i = insert_MD!(buffer, el, i)
+        end
+        i
+    end
+
+    function insert_MD!(buffer, m::String, i)
+        insert!(buffer, m)
         i += length(m)
     end
 
-    function insert_MD!(buffer,m::Markdown.LaTeX,i)
-        i = insert_MD!(buffer,m.formula,i)
+    function insert_MD!(buffer, m::Markdown.LaTeX, i)
+        i = insert_MD!(buffer, m.formula, i)
     end
 
-    function insert_MD!(buffer,m::Markdown.Paragraph,i)
-    #    insert!(buffer,"\n\n")
+    function insert_MD!(buffer, m::Markdown.Paragraph, i)
+    #    insert!(buffer, "\n\n")
     #    i += 2
         for el in m.content
-            i = insert_MD!(buffer,el,i)
+            i = insert_MD!(buffer, el, i)
         end
         i
     end
 
-    function insert_MD!(buffer,m::Markdown.Code,i)
-        insert!(buffer,m.code)
+    function insert_MD!(buffer, m::Markdown.Code, i)
+        insert!(buffer, m.code)
         tag(buffer, "code", i, i+sizeof(m.code)) 
         i += length(m.code)
     end
 
-    function insert_MD!(buffer,m::Markdown.List,i)
-        for it in m.items
-            insert!(buffer,"    - ")
-            i += 6
+    function insert_MD!(buffer, m::Markdown.List, i)
+
+        marker = k -> m.ordered == -1 ? "•" : "$(k)."
+        for (k, it) in enumerate(m.items)
+            insert!(buffer, "    $(marker(k)) ")
+            i += 6 + (m.ordered == 1)
             for el in it
-                i = insert_MD!(buffer,el,i)
+                i = insert_MD!(buffer, el, i)
             end
-            insert!(buffer,"\n")
+            insert!(buffer, "\n")
             i += 1
         end 
         i
     end
 
-    function insert_MD!(buffer,m::Markdown.Italic,i)
+    tagname(m::Markdown.Italic) = "italic"
+    tagname(m::Markdown.Bold) = "bold"
+    
+    function insert_MD!(buffer, m::T, i) where T <: Union{Markdown.Italic, Markdown.Bold}
         ip = i
         for el in m.text
-            i = insert_MD!(buffer,el,i)
+            i = insert_MD!(buffer, el, i)
         end
-        tag(buffer, "italic", ip, i) 
+        tag(buffer, tagname(m), ip, i) 
         i
     end
 
-    function insert_MD!(buffer,m::Markdown.Bold,i)
-        ip = i
-        for el in m.text
-            i = insert_MD!(buffer,el,i)
-        end
-        tag(buffer, "bold", ip, i) 
-        i
-    end
-
-    function insert_MD!(buffer,m,i)
-        if isdefined(m,:text) 
+    function insert_MD!(buffer, m, i)
+        if isdefined(m, :text) 
             for el in m.text
-                i = insert_MD!(buffer,el,i)
+                i = insert_MD!(buffer, el, i)
             end
         end
-        if isdefined(m,:content) 
+        if isdefined(m, :content) 
             for el in m.content
-                i = insert_MD!(buffer,el,i)
+                i = insert_MD!(buffer, el, i)
             end
         end
         i
     end
 
-    function insert_MD!(buffer,m::Markdown.MD)
+    function insert_MD!(buffer, m::Markdown.MD)
         i = length(buffer)+1
         for el in m.content
-            i = insert_MD!(buffer,el,i)
-            insert!(buffer,"\n\n")
+            i = insert_MD!(buffer, el, i)
+            insert!(buffer, "\n\n")
             i += 2
         end
     end
