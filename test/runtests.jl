@@ -1,5 +1,5 @@
 using GtkMarkdownTextView, Test
-using Gtk
+using Gtk4
 
 @testset "MarkdownTextView" begin
     
@@ -19,7 +19,7 @@ When `data` is not given, the buffer will be both readable and writable by defau
 
     v = MarkdownTextView(md)
     push!(w,v)
-    showall(w)
+    show(w)
     sleep(1)
     destroy(w)
 

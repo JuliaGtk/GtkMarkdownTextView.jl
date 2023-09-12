@@ -1,7 +1,8 @@
 module GtkMarkdownTextView
 
-    using Gtk
-    import Gtk.GtkTextIter
+    using Gtk4
+    import Gtk4: _GtkTextIter, create_tag, apply_tag
+    import Gtk4.GLib: gobject_move_ref, GObject
 
     using Markdown
     
@@ -18,15 +19,14 @@ module GtkMarkdownTextView
     MarkdownColors() =  MarkdownColors(13, "#000", "#fff", "#111", "#eee")
     
     mutable struct MarkdownTextView <: GtkTextView
-
-        handle::Ptr{Gtk.GObject}
+        handle::Ptr{GObject}
         view::GtkTextView
         buffer::GtkTextBuffer
 
         function MarkdownTextView(m::Markdown.MD, prelude::String, mc::MarkdownColors = MarkdownColors())
             
             buffer = GtkTextBuffer()
-            buffer.text[String] = prelude
+            buffer.text = prelude
             view = GtkTextView(buffer)
             
             style_css(view, 
@@ -39,28 +39,28 @@ module GtkMarkdownTextView
             )
 
             #set_gtk_property!(view, :margin_left, 1)
-            view.monospace[Bool] = true
-            view.wrap_mode[Bool] = true
+            view.monospace = true
+            view.wrap_mode = true
 
             fs = mc.font_size
 
-            Gtk.create_tag(buffer, "normal",    font = "$fs")
-            Gtk.create_tag(buffer, "h1",        font = "bold $(fs+3)")
-            Gtk.create_tag(buffer, "h2",        font = "bold $(fs+2)")
-            Gtk.create_tag(buffer, "h3",        font = "bold $(fs+1)")
-            Gtk.create_tag(buffer, "h4",        font = "bold $(fs)")
-            Gtk.create_tag(buffer, "h5",        font = "$(fs)")
-            Gtk.create_tag(buffer, "h6",        font = "$(fs-1)")
-            Gtk.create_tag(buffer, "bold",      font = "bold $(fs)")
-            Gtk.create_tag(buffer, "italic",    font = "italic $fs")
-            Gtk.create_tag(buffer, "code",      font = "bold $fs", 
+            create_tag(buffer, "normal",    font = "$fs")
+            create_tag(buffer, "h1",        font = "bold $(fs+3)")
+            create_tag(buffer, "h2",        font = "bold $(fs+2)")
+            create_tag(buffer, "h3",        font = "bold $(fs+1)")
+            create_tag(buffer, "h4",        font = "bold $(fs)")
+            create_tag(buffer, "h5",        font = "$(fs)")
+            create_tag(buffer, "h6",        font = "$(fs-1)")
+            create_tag(buffer, "bold",      font = "bold $(fs)")
+            create_tag(buffer, "italic",    font = "italic $fs")
+            create_tag(buffer, "code",      font = "bold $fs", 
                 foreground=mc.highlight_color, background=mc.highlight_background)
 
             insert_MD!(buffer, m)
 #            tag(buffer, "normal", 1, length(buffer))
             
             n = new(view.handle, view, buffer)
-            Gtk.gobject_move_ref(n, view)
+            gobject_move_ref(n, view)
         end
         
         MarkdownTextView(m::String) = MarkdownTextView(Markdown.parse(m), "")
@@ -70,14 +70,14 @@ module GtkMarkdownTextView
     end
     
     function tag(buffer, what, i, j)
-        Gtk.apply_tag(buffer, what, 
-            GtkTextIter(buffer, i), GtkTextIter(buffer, j) 
+        apply_tag(buffer, what, 
+            _GtkTextIter(buffer, i), _GtkTextIter(buffer, j) 
         )
     end
 
-    function style_css(w::Gtk.GtkWidget, css::String)
-        sc = Gtk.G_.style_context(w)
-        push!(sc, GtkCssProvider(data=css), 600)
+    function style_css(w::GtkWidget, css::String)
+        sc = Gtk4.style_context(w)
+        push!(sc, GtkCssProvider(css), 600)
     end
 
     function insert_MD!(buffer, m::Markdown.Header{N}, i) where N
