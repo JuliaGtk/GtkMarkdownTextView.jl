@@ -1,6 +1,6 @@
 # GtkMarkdownTextView
 
-[![Build Status](https://travis-ci.org/jonathanBieler/GtkMarkdownTextView.jl.svg?branch=master)](https://travis-ci.org/jonathanBieler/GtkMarkdownTextView.jl)
+[![Build Status](https://github.com/jonathanBieler/GtkMarkdownTextView.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jonathanBieler/GtkMarkdownTextView.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 [![Coverage Status](https://coveralls.io/repos/jonathanBieler/GtkMarkdownTextView.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jonathanBieler/GtkMarkdownTextView.jl?branch=master)
 
@@ -9,6 +9,8 @@ A widget to display simple markdown formatted text:
 ![screenshot](assets/GtkMarkdownTextView.png)
 
 ```julia
+using Gtk4, GtkMarkdownTextView
+
 w = GtkWindow("")
 
 md = """
@@ -31,7 +33,7 @@ md = """
 
 v = MarkdownTextView(md)
 push!(w,v)
-showall(w)
+show(w)
 ```
 
 The constructor can take a prelude text and color settings :
