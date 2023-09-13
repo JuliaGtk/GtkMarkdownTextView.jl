@@ -1,6 +1,6 @@
 # GtkMarkdownTextView
 
-[![Build Status](https://github.com/jonathanBieler/GtkMarkdownTextView.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jonathanBieler/GtkMarkdownTextView.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/jonathanBieler/GtkMarkdownTextView.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jonathanBieler/GtkMarkdownTextView.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 
 [![Coverage Status](https://coveralls.io/repos/jonathanBieler/GtkMarkdownTextView.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jonathanBieler/GtkMarkdownTextView.jl?branch=master)
 
