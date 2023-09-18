@@ -1,7 +1,6 @@
 # GtkMarkdownTextView
 
-[![Build Status](https://github.com/jonathanBieler/GtkMarkdownTextView.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jonathanBieler/GtkMarkdownTextView.jl/actions/workflows/CI.yml?query=branch%3Amaster)
-
+[![CI](https://github.com/JuliaGtk/GtkMarkdownTextView.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/JuliaGtk/GtkMarkdownTextView.jl/actions/workflows/CI.yml)
 [![Coverage Status](https://coveralls.io/repos/jonathanBieler/GtkMarkdownTextView.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jonathanBieler/GtkMarkdownTextView.jl?branch=master)
 
 A widget to display simple markdown formatted text:
