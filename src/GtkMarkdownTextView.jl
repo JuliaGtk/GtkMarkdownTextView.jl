@@ -23,11 +23,11 @@ module GtkMarkdownTextView
         view::GtkTextView
         buffer::GtkTextBuffer
 
-        function MarkdownTextView(m::Markdown.MD, prelude::String, mc::MarkdownColors = MarkdownColors())
+        function MarkdownTextView(m::Markdown.MD, prelude::String, mc::MarkdownColors = MarkdownColors(); kwargs...)
             
             buffer = GtkTextBuffer()
             buffer.text = prelude
-            view = GtkTextView(buffer)
+            view = GtkTextView(buffer; kwargs...)
             
             style_css(view, 
                 "window, view, textview, buffer, text {
@@ -111,8 +111,6 @@ module GtkMarkdownTextView
     end
 
     function insert_MD!(buffer, m::Markdown.Paragraph, i)
-    #    insert!(buffer, "\n\n")
-    #    i += 2
         for el in m.content
             i = insert_MD!(buffer, el, i)
         end
@@ -151,6 +149,17 @@ module GtkMarkdownTextView
         tag(buffer, tagname(m), ip, i) 
         i
     end
+    
+    function insert_MD!(buffer, m::Markdown.Link, i)
+        for el in m.text
+            i = insert_MD!(buffer, el, i)
+        end
+        insert!(buffer, "(")
+        i += 1
+        i = insert_MD!(buffer, m.url, i)
+        insert!(buffer, ")")
+        i += 1
+    end
 
     function insert_MD!(buffer, m, i)
         if isdefined(m, :text) 
@@ -161,6 +170,8 @@ module GtkMarkdownTextView
         if isdefined(m, :content) 
             for el in m.content
                 i = insert_MD!(buffer, el, i)
+                insert!(buffer, "\n\n")
+                i += 2
             end
         end
         i
