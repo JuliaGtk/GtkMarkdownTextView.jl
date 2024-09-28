@@ -1,7 +1,7 @@
 module GtkMarkdownTextView
 
     using Gtk4
-    import Gtk4: _GtkTextIter, create_tag, apply_tag
+    import Gtk4: create_tag, apply_tag
     import Gtk4.GLib: gobject_move_ref, GObject
 
     using Markdown
@@ -71,7 +71,7 @@ module GtkMarkdownTextView
     
     function tag(buffer, what, i, j)
         apply_tag(buffer, what, 
-            _GtkTextIter(buffer, i), _GtkTextIter(buffer, j) 
+            GtkTextIter(buffer, i), GtkTextIter(buffer, j) 
         )
     end
 
