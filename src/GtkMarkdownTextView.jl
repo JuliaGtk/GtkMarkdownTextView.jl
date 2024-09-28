@@ -20,8 +20,8 @@ module GtkMarkdownTextView
     
     mutable struct MarkdownTextView <: GtkTextView
         handle::Ptr{GObject}
-        view::GtkTextView
-        buffer::GtkTextBuffer
+        view::GtkTextViewLeaf
+        buffer::GtkTextBufferLeaf
 
         function MarkdownTextView(m::Markdown.MD, prelude::String, mc::MarkdownColors = MarkdownColors(); kwargs...)
             
@@ -34,6 +34,7 @@ module GtkMarkdownTextView
                     background-color: $(mc.background);
                     color: $(mc.color);
                     font-family: Monaco, Consolas, Courier, monospace;
+                    font-size: $(mc.font_size)pt;
                     margin:0px;
                 }"
             )
@@ -57,7 +58,6 @@ module GtkMarkdownTextView
                 foreground=mc.highlight_color, background=mc.highlight_background)
 
             insert_MD!(buffer, m)
-#            tag(buffer, "normal", 1, length(buffer))
             
             n = new(view.handle, view, buffer)
             gobject_move_ref(n, view)
