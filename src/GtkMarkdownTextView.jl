@@ -3,6 +3,7 @@ module GtkMarkdownTextView
     using Gtk4
     import Gtk4: create_tag, apply_tag
     import Gtk4.GLib: gobject_move_ref, GObject
+    import Gtk4.Pango
 
     using Markdown
     
@@ -20,7 +21,6 @@ module GtkMarkdownTextView
     
     mutable struct MarkdownTextView <: GtkTextView
         handle::Ptr{GObject}
-        view::GtkTextViewLeaf
         buffer::GtkTextBufferLeaf
 
         function MarkdownTextView(m::Markdown.MD, prelude::String, mc::MarkdownColors = MarkdownColors(); kwargs...)
@@ -28,39 +28,30 @@ module GtkMarkdownTextView
             buffer = GtkTextBuffer()
             buffer.text = prelude
             view = GtkTextView(buffer; kwargs...)
-            
-            style_css(view, 
-                "window, view, textview, buffer, text {
-                    background-color: $(mc.background);
-                    color: $(mc.color);
-                    font-family: Monaco, Consolas, Courier, monospace;
-                    font-size: $(mc.font_size)pt;
-                    margin:0px;
-                }"
-            )
 
-            #set_gtk_property!(view, :margin_left, 1)
             view.monospace = true
-            view.wrap_mode = true
+            view.wrap_mode = Pango.WrapMode_WORD_CHAR
 
             fs = mc.font_size
 
-            create_tag(buffer, "normal",    font = "$fs")
-            create_tag(buffer, "h1",        font = "bold $(fs+3)")
-            create_tag(buffer, "h2",        font = "bold $(fs+2)")
-            create_tag(buffer, "h3",        font = "bold $(fs+1)")
-            create_tag(buffer, "h4",        font = "bold $(fs)")
-            create_tag(buffer, "h5",        font = "$(fs)")
-            create_tag(buffer, "h6",        font = "$(fs-1)")
-            create_tag(buffer, "bold",      font = "bold $(fs)")
-            create_tag(buffer, "italic",    font = "italic $fs")
-            create_tag(buffer, "code",      font = "bold $fs", 
+            create_tag(buffer, "normal")
+            create_tag(buffer, "h1",        scale = 2.0,  weight = Pango.Weight_BOLD)
+            create_tag(buffer, "h2",        scale = 1.5,  weight = Pango.Weight_BOLD)
+            create_tag(buffer, "h3",        scale = 1.25, weight = Pango.Weight_BOLD)
+            create_tag(buffer, "h4",        scale = 1.0,  weight = Pango.Weight_BOLD)
+            create_tag(buffer, "h5",        scale = 0.9,  weight = Pango.Weight_BOLD)
+            create_tag(buffer, "h6",        scale = 0.8,  weight = Pango.Weight_BOLD)
+            create_tag(buffer, "bold",      weight = Pango.Weight_BOLD)
+            create_tag(buffer, "italic",    style = Pango.Style_ITALIC)
+            create_tag(buffer, "code",      weight = Pango.Weight_BOLD, 
                 foreground=mc.highlight_color, background=mc.highlight_background)
 
             insert_MD!(buffer, m)
             
-            n = new(view.handle, view, buffer)
-            gobject_move_ref(n, view)
+            n = new(view.handle, buffer)
+            mtv = gobject_move_ref(n, view)
+            style!(mtv, MarkdownColors())
+            mtv
         end
         
         MarkdownTextView(m::String) = MarkdownTextView(Markdown.parse(m), "")
@@ -88,7 +79,7 @@ module GtkMarkdownTextView
         for el in m.text
             i = insert_MD!(buffer, el, i)
         end
-        tag(buffer, "h$(min(N,4))", ip, i)
+        tag(buffer, "h$(min(N,6))", ip, i)
         i
     end
 
@@ -186,6 +177,22 @@ module GtkMarkdownTextView
         end
     end
 
+    # this sets the colors to the default too, which is not ideal
+    function fontsize!(m::MarkdownTextView, fs)
+        mc =  MarkdownColors(fs, "#000", "#fff", "#111", "#eee")
+        style!(m, mc)
+    end
     
+    function style!(m::MarkdownTextView, mc::MarkdownColors)
+        style_css(m,
+                "window, view, textview, buffer, text {
+                    background-color: $(mc.background);
+                    color: $(mc.color);
+                    font-family: Monaco, Consolas, Courier, monospace;
+                    font-size: $(mc.font_size)pt;
+                    margin:0px;
+                }"
+            )
+    end
 end
     

@@ -1,7 +1,7 @@
 using Gtk4, GtkMarkdownTextView, Markdown
 
 w = GtkWindow("GtkMarkdownTextView example")
-Gtk4.default_size(w, 400, 600)
+Gtk4.default_size(w, 800, 400)
 p = GtkPaned(:h)
 w[] = p
 
